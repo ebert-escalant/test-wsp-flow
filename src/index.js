@@ -1,4 +1,6 @@
 // src/index.js
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const { decryptRequest, encryptResponse } = require("./crypto/flow");
 const { handleInit, handleDataExchange } = require("./handlers/flow");
@@ -9,9 +11,24 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // ─── Clave privada RSA ────────────────────────────────────────────────────────
-// En Render la defines como variable de entorno PRIVATE_KEY
-// El valor debe ser el PEM completo con saltos de línea reales (usa \n en Render)
-const PRIVATE_KEY = process.env.PRIVATE_KEY || null;
+// En Render se monta como Secret File en /etc/secrets/private.pem
+// En local se lee desde secrets/private.pem dentro del proyecto
+// No commitear ningún archivo .pem en el repo (cubierto por .gitignore)
+const PRIVATE_KEY = (() => {
+  const candidates = [
+    "/etc/secrets/private.pem",
+    path.join(__dirname, "..", "secrets", "private.pem"),
+  ];
+  for (const file of candidates) {
+    try {
+      return fs.readFileSync(file, "utf8");
+    } catch {
+      // intentar siguiente ruta
+    }
+  }
+  console.warn("⚠️  private.pem no encontrado — modo desarrollo sin cifrado");
+  return null;
+})();
 
 // ─── Health check para Render ─────────────────────────────────────────────────
 app.get("/", (req, res) => {
