@@ -1,0 +1,297 @@
+{
+  "version": "7.3",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "APPOINTMENT": ["DETAILS"],
+    "DETAILS": ["SUMMARY"],
+    "SUMMARY": [],
+    "TERMS": []
+  },
+  "screens": [
+    {
+      "id": "APPOINTMENT",
+      "title": "Agendar Cita",
+      "data": {
+        "department": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          },
+          "__example__": [
+            { "id": "medicina_general", "title": "Medicina General" },
+            { "id": "pediatria", "title": "Pediatría" }
+          ]
+        },
+        "location": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          },
+          "__example__": [{ "id": "1", "title": "Sede Principal" }]
+        },
+        "is_location_enabled": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "date": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          },
+          "__example__": [
+            { "id": "2026-06-16", "title": "Lun 16 Jun" },
+            { "id": "2026-06-17", "title": "Mar 17 Jun" }
+          ]
+        },
+        "is_date_enabled": {
+          "type": "boolean",
+          "__example__": false
+        },
+        "time": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          },
+          "__example__": [
+            { "id": "09:00", "title": "09:00 am" },
+            { "id": "10:00", "title": "10:00 am" }
+          ]
+        },
+        "is_time_enabled": {
+          "type": "boolean",
+          "__example__": false
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "appointment_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "¿Qué especialidad necesitas?"
+              },
+              {
+                "type": "Dropdown",
+                "label": "Especialidad",
+                "name": "department",
+                "data-source": "${data.department}",
+                "required": true,
+                "on-select-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "trigger": "department_selected",
+                    "department": "${form.department}"
+                  }
+                }
+              },
+              {
+                "type": "TextHeading",
+                "text": "¿Cuándo prefieres tu cita?"
+              },
+              {
+                "type": "Dropdown",
+                "label": "Fecha",
+                "name": "date",
+                "data-source": "${data.date}",
+                "required": "${data.is_date_enabled}",
+                "enabled": "${data.is_date_enabled}",
+                "on-select-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "trigger": "date_selected",
+                    "department": "${form.department}",
+                    "date": "${form.date}"
+                  }
+                }
+              },
+              {
+                "type": "Dropdown",
+                "label": "Hora",
+                "name": "time",
+                "data-source": "${data.time}",
+                "required": "${data.is_time_enabled}",
+                "enabled": "${data.is_time_enabled}"
+              },
+              {
+                "type": "Footer",
+                "label": "Siguiente",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": { "type": "screen", "name": "DETAILS" },
+                  "payload": {
+                    "department": "${form.department}",
+                    "location": "1",
+                    "date": "${form.date}",
+                    "time": "${form.time}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "DETAILS",
+      "title": "Tus datos",
+      "data": {
+        "department": { "type": "string", "__example__": "medicina_general" },
+        "location": { "type": "string", "__example__": "1" },
+        "date": { "type": "string", "__example__": "2026-06-16" },
+        "time": { "type": "string", "__example__": "09:00" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "details_form",
+            "children": [
+              {
+                "type": "TextInput",
+                "label": "Nombre completo",
+                "name": "name",
+                "required": true
+              },
+              {
+                "type": "TextInput",
+                "label": "DNI",
+                "name": "dni",
+                "input-type": "text",
+                "helper-text": "Ingresa tu DNI sin puntos",
+                "required": true
+              },
+              {
+                "type": "TextInput",
+                "label": "Celular",
+                "name": "phone",
+                "input-type": "phone",
+                "required": true
+              },
+              {
+                "type": "TextInput",
+                "label": "Email",
+                "name": "email",
+                "input-type": "email",
+                "required": false
+              },
+              {
+                "type": "TextArea",
+                "label": "Motivo de consulta",
+                "name": "more_details",
+                "helper-text": "Opcional — describe brevemente tu consulta",
+                "required": false
+              },
+              {
+                "type": "Footer",
+                "label": "Ver resumen",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "department": "${data.department}",
+                    "location": "${data.location}",
+                    "date": "${data.date}",
+                    "time": "${data.time}",
+                    "name": "${form.name}",
+                    "dni": "${form.dni}",
+                    "phone": "${form.phone}",
+                    "email": "${form.email}",
+                    "more_details": "${form.more_details}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "SUMMARY",
+      "title": "Confirmar Cita",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "appointment": { "type": "string", "__example__": "Medicina General\n16 Jun 2026 a las 09:00" },
+        "details": { "type": "string", "__example__": "Nombre: Juan Pérez\nDNI: 12345678\nTelefono: 999888777" },
+        "department": { "type": "string", "__example__": "medicina_general" },
+        "location": { "type": "string", "__example__": "1" },
+        "date": { "type": "string", "__example__": "2026-06-16" },
+        "time": { "type": "string", "__example__": "09:00" },
+        "name": { "type": "string", "__example__": "Juan Pérez" },
+        "dni": { "type": "string", "__example__": "12345678" },
+        "phone": { "type": "string", "__example__": "999888777" },
+        "email": { "type": "string", "__example__": "juan@email.com" },
+        "more_details": { "type": "string", "__example__": "" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "confirmation_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Resumen de tu cita"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "📅 Cita"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.appointment}"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "👤 Paciente"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.details}"
+              },
+              {
+                "type": "Footer",
+                "label": "Confirmar cita",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "department": "${data.department}",
+                    "date": "${data.date}",
+                    "time": "${data.time}",
+                    "name": "${data.name}",
+                    "dni": "${data.dni}",
+                    "phone": "${data.phone}",
+                    "email": "${data.email}",
+                    "more_details": "${data.more_details}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
